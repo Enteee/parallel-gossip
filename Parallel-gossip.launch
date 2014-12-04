@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<launchConfiguration type="org.eclipse.jdt.launching.localJavaApplication">
+<listAttribute key="org.eclipse.debug.core.MAPPED_RESOURCE_PATHS">
+<listEntry value="/parallel-gossip/src/ch/duckpond/parallel/gossip/Main.java"/>
+</listAttribute>
+<listAttribute key="org.eclipse.debug.core.MAPPED_RESOURCE_TYPES">
+<listEntry value="1"/>
+</listAttribute>
+<mapAttribute key="org.eclipse.debug.core.environmentVariables">
+<mapEntry key="MPJ_HOME" value="${project_loc}/lib/mpj-v0_43/"/>
+</mapAttribute>
+<booleanAttribute key="org.eclipse.jdt.launching.ATTR_USE_START_ON_FIRST_THREAD" value="true"/>
+<stringAttribute key="org.eclipse.jdt.launching.JRE_CONTAINER" value="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/java-8-openjdk"/>
+<stringAttribute key="org.eclipse.jdt.launching.MAIN_TYPE" value="ch.duckpond.parallel.gossip.Main"/>
+<stringAttribute key="org.eclipse.jdt.launching.PROJECT_ATTR" value="parallel-gossip"/>
+<stringAttribute key="org.eclipse.jdt.launching.VM_ARGUMENTS" value="-jar ${project_loc}/lib/mpj-v0_43/lib/starter.jar -np 4"/>
+</launchConfiguration>
