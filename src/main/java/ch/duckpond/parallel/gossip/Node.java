@@ -32,6 +32,11 @@ public abstract class Node {
 	class MessageOutQueue extends MessageQueue {
 
 		private static final long serialVersionUID = 1L;
+		/**
+		 * Tag used for arbitrary message sending (Send untagged). !!!NOTE:
+		 * DON't USE MPI.ANY_TAG for this!!!!
+		 */
+		public static final int TAG_ARBITRARY = 1234;
 
 		@Override
 		public void run() {
@@ -41,7 +46,7 @@ public abstract class Node {
 					message[0] = take();
 					logger.info("sending:" + message[0]);
 					MPI.COMM_WORLD.Send(message, 0, 1, MPI.OBJECT,
-							message[0].getDestination(), MPI.ANY_TAG);
+							message[0].getDestination(), TAG_ARBITRARY);
 				}
 			} catch (InterruptedException e) {
 				logger.info("Out queue interrupted", e);
@@ -92,8 +97,8 @@ public abstract class Node {
 		logger.addAppender(fa);
 		logger.info(rank + " : " + this.getClass().getName());
 		// start in & out queue
-		// messageInQueueThread.start();
-		// messageOutQueueThread.start();
+		messageInQueueThread.start();
+		messageOutQueueThread.start();
 	}
 
 	@Override

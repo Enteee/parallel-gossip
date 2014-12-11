@@ -12,24 +12,11 @@ public class Main {
 
 	public static void main(String args[]) throws Exception {
 		MPI.Init(args);
-		int message[] = { 1 };
-		// if (MPI.COMM_WORLD.Rank() <= MPI.COMM_WORLD.Size() * FRONT_END_RATIO)
-		// {
-		if (MPI.COMM_WORLD.Rank() == 1) {
-			// send
-			MPI.COMM_WORLD.Isend(message, 0, 1, MPI.INT, 0, MPI.ANY_TAG);
-		} else if (MPI.COMM_WORLD.Rank() == 0) {
-			// send
-			MPI.COMM_WORLD.Isend(message, 0, 1, MPI.INT, 1, MPI.ANY_TAG);
+		if (MPI.COMM_WORLD.Rank() <= MPI.COMM_WORLD.Size() * FRONT_END_RATIO) {
+			new Replica();
 		} else {
-			throw new RuntimeException("TOO many nodes!");
+			new Replica();
 		}
-		// null
-		message = new int[1];
-		// receive
-		MPI.COMM_WORLD
-				.Recv(message, 0, 1, MPI.INT, MPI.ANY_SOURCE, MPI.ANY_TAG);
-		LOG.info("MESSAGE GOT:" + message[0]);
 		LOG.info("Shutting down...");
 		MPI.Finalize();
 	}
