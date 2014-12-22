@@ -1,7 +1,9 @@
 package ch.duckpond.parallel.gossip;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
@@ -16,6 +18,7 @@ import org.apache.log4j.PatternLayout;
 
 import ch.duckpond.parallel.gossip.messages.Gossip;
 import ch.duckpond.parallel.gossip.messages.Message;
+import ch.duckpond.parallel.gossip.messages.NodeAnnounceMessage;
 import ch.duckpond.parallel.gossip.utils.TimeVector;
 
 public abstract class Node {
@@ -52,7 +55,7 @@ public abstract class Node {
 				while (!isDisposed()) {
 					Message[] message = new Message[1];
 					message[0] = take();
-					log.info("sending:" + message[0]);
+					log.info("sending: " + message[0]);
 					MPI.COMM_WORLD.Send(message, 0, 1, MPI.OBJECT,
 							message[0].getDestination(), TAG_ARBITRARY);
 				}
@@ -73,7 +76,7 @@ public abstract class Node {
 				while (!isDisposed()) {
 					MPI.COMM_WORLD.Recv(message, 0, 1, MPI.OBJECT,
 							MPI.ANY_SOURCE, MPI.ANY_TAG);
-					log.info("received:" + message[0]);
+					log.debug("received: " + message[0]);
 					put(message[0]);
 				}
 			} catch (InterruptedException e) {
@@ -85,19 +88,19 @@ public abstract class Node {
 	protected final MessageOutQueue messageOutQueue = new MessageOutQueue();
 	protected final MessageInQueue messageInQueue = new MessageInQueue();
 	protected final Logger log;
+	private final NodeInformation nodeInformation = new NodeInformation(
+			getClass(), MPI.COMM_WORLD.Rank());
 	private final Thread messageOutQueueThread = new Thread(messageOutQueue);
 	private final Thread messageInQueueThread = new Thread(messageInQueue);
 	private final int rank = MPI.COMM_WORLD.Rank();
 	private final TimeVector timeStamp = new TimeVector(MPI.COMM_WORLD.Size());
 	private final Set<BulletinMessage> bulletinMessages = new HashSet<>();
 	private final Set<BulletinMessage> futureBulletinMessages = new HashSet<>();
-	private final HashMap<Integer, TimeVector> otherTimeStamps = new HashMap<>();
+	private final HashMap<Integer, TimeVector> otherNodes = new HashMap<>();
+	private List<NodeInformation> replicas = new ArrayList<>();
+	private List<NodeInformation> front_ends = new ArrayList<>();
 
 	protected Node() {
-		// add for each node a time stamp
-		for (int i = 0; i < MPI.COMM_WORLD.Size(); i++) {
-			otherTimeStamps.put(i, new TimeVector(MPI.COMM_WORLD.Size()));
-		}
 		// Log file per node
 		final FileAppender fa = new FileAppender();
 		final int rank = MPI.COMM_WORLD.Rank();
@@ -115,7 +118,27 @@ public abstract class Node {
 		// start in & out queue
 		messageInQueueThread.start();
 		messageOutQueueThread.start();
+		// announce this node
+		for (int i = 0; i < MPI.COMM_WORLD.Size(); i++) {
+			try {
+				messageOutQueue
+						.put(new NodeAnnounceMessage(i, nodeInformation));
+			} catch (InterruptedException e) {
+				log.error("interrupted while sending node announcement", e);
+			}
+			otherNodes.put(i, new TimeVector(MPI.COMM_WORLD.Size()));
+		}
+		do {
+			try {
+				handleMessage(messageInQueue.take());
+			} catch (InterruptedException e) {
+				log.error("interrupted while reading announcement messages");
+			}
+		} while (replicas.size() <= 0 && front_ends.size() <= 0);
+
 	}
+
+	abstract public void start();
 
 	@Override
 	protected void finalize() throws Throwable {
@@ -138,6 +161,32 @@ public abstract class Node {
 	protected TimeVector nextTimeStamp() {
 		timeStamp.increment(getRank());
 		return timeStamp;
+	}
+
+	protected NodeInformation getRandomReplica() {
+		return replicas.get(Main.RND.nextInt(replicas.size()));
+	}
+
+	protected List<NodeInformation> getRandomReplicas(double amountPercentage) {
+		if (amountPercentage < 0 || amountPercentage > 1.0) {
+			throw new IllegalArgumentException("amountPercentage");
+		}
+		final List<NodeInformation> randomReplicas = new ArrayList<>(replicas);
+		final int amount = (int) Math.round(replicas.size() * amountPercentage);
+		while (randomReplicas.size() > amount) {
+			randomReplicas.remove(Main.RND.nextInt(randomReplicas.size()));
+		}
+		return randomReplicas;
+	}
+
+	public void addNodeInformation(final NodeInformation nodeInformation) {
+		if (nodeInformation.getNodeType() == Replica.class) {
+			replicas.add(nodeInformation);
+		} else if (nodeInformation.getNodeType() == FrontEnd.class) {
+			front_ends.add(nodeInformation);
+		} else {
+			log.fatal("invalid node class");
+		}
 	}
 
 	/**
@@ -201,8 +250,21 @@ public abstract class Node {
 					TimeUnit.MILLISECONDS);
 			// timeout?
 			if (message != null) {
-				message.handle(this);
+				handleMessage(message);
 			}
 		} while (messageInQueue.size() > 0);
+	}
+
+	/**
+	 * Handle the specific message
+	 * 
+	 * @param message
+	 *            the message to handle
+	 */
+	private void handleMessage(final Message message) {
+		if (message == null) {
+			throw new IllegalArgumentException("message");
+		}
+		message.handle(this);
 	}
 }

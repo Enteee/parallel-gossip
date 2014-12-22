@@ -9,11 +9,11 @@ public class FrontEnd extends Node {
 	/**
 	 * Maximum timeout [s]
 	 */
-	private static final double MAX_TIMEOUT = 5;
+	private static final double MAX_TIMEOUT = 10;
 	/**
 	 * Minimum timeout [s]
 	 */
-	private static final double MIN_TIMEOUT = 0.5;
+	private static final double MIN_TIMEOUT = 2;
 	/**
 	 * Relative chance for a post message being sent
 	 */
@@ -32,12 +32,23 @@ public class FrontEnd extends Node {
 	private static final String AUTHOR_PREFIX = "AutoFrontEnd";
 
 	public FrontEnd() {
+		log.info("FrontEnd started");
+	}
+
+	public void start() {
 		do {
+			// time of the loop start [ms]
+			long loopStartTime = System.currentTimeMillis();
+			// random timeout [ms]
+			long timeOut = (long) (MIN_TIMEOUT * 1000 + Main.RND
+					.nextInt((int) ((MAX_TIMEOUT - MIN_TIMEOUT) * 1000)));
+			long timeOutLeft = timeOut;
 			try {
-				// random timeout
-				long timeout = (long) (MIN_TIMEOUT * 1000 + Main.RND
-						.nextInt((int) ((MAX_TIMEOUT - MIN_TIMEOUT) * 1000)));
-				handleMessages(timeout);
+				while (timeOutLeft > 0) {
+					handleMessages(timeOutLeft);
+					timeOutLeft = timeOut
+							- (System.currentTimeMillis() - loopStartTime);
+				}
 			} catch (InterruptedException e) {
 				log.info("sleep interrupted", e);
 			}
@@ -56,9 +67,9 @@ public class FrontEnd extends Node {
 
 	private void post() {
 		try {
-			messageOutQueue.put(new PostMessage(Main.getRandomReplica()
-					.getRank(), new BulletinMessage(AUTHOR_PREFIX + getRank(),
-					Utils.rndString(), Utils.rndString(), nextTimeStamp())));
+			messageOutQueue.put(new PostMessage(getRandomReplica().getRank(),
+					new BulletinMessage(AUTHOR_PREFIX + getRank(), Utils
+							.rndString(), Utils.rndString(), nextTimeStamp())));
 		} catch (InterruptedException e) {
 			log.error("message post interrupted", e);
 		}
@@ -66,8 +77,8 @@ public class FrontEnd extends Node {
 
 	private void query() {
 		try {
-			messageOutQueue.put(new QueryMessage(Main.getRandomReplica()
-					.getRank(), getRank(), getTimeStamp()));
+			messageOutQueue.put(new QueryMessage(getRandomReplica().getRank(),
+					getRank(), getTimeStamp()));
 		} catch (InterruptedException e) {
 			log.error("message query interrupted", e);
 		}

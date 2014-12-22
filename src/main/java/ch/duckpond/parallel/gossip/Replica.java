@@ -15,6 +15,11 @@ public class Replica extends Node {
 	private static final long TIMEOUT = 2;
 
 	public Replica() {
+		log.info("Replica started");
+	}
+
+	@Override
+	public void start() {
 		do {
 			try {
 				handleMessages(TIMEOUT * 1000);
@@ -26,12 +31,11 @@ public class Replica extends Node {
 	}
 
 	private void gossip() {
-		for (final Replica replica : Main
-				.getRandomReplicas(REPLICA_GOSSIP_PERCENTAGE)) {
+		for (final NodeInformation replica : getRandomReplicas(REPLICA_GOSSIP_PERCENTAGE)) {
 			// TODO: Send only new messages for replica
 			this.sendGossipMessage(replica.getRank(), new TimeVector(
 					MPI.COMM_WORLD.Size()));
 		}
-
 	}
+
 }

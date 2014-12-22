@@ -1,9 +1,6 @@
 package ch.duckpond.parallel.gossip;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Random;
-import java.util.concurrent.CopyOnWriteArrayList;
 
 import mpi.MPI;
 
@@ -15,33 +12,17 @@ public class Main {
 
 	public static Random RND = new Random();
 	private static Logger LOG = Logger.getLogger(Main.class);
-	private static List<Replica> REPLICAS = new CopyOnWriteArrayList<>();
-	private static List<FrontEnd> FRONT_ENDS = new CopyOnWriteArrayList<>();
-
-	public static Replica getRandomReplica() {
-		return REPLICAS.get(RND.nextInt(REPLICAS.size()));
-	}
-
-	public static List<Replica> getRandomReplicas(double amountPercentage) {
-		if (amountPercentage < 0 || amountPercentage > 1.0) {
-			throw new IllegalArgumentException("amountPercentage");
-		}
-		final List<Replica> randomReplicas = new ArrayList<>(REPLICAS);
-		final int amount = (int) Math.round(REPLICAS.size() * amountPercentage);
-		while (randomReplicas.size() > amount) {
-			randomReplicas.remove(RND.nextInt(randomReplicas.size()));
-		}
-		return randomReplicas;
-	}
 
 	public static void main(String args[]) throws Exception {
 		MPI.Init(args);
+		Node node;
 		if (MPI.COMM_WORLD.Rank() <= MPI.COMM_WORLD.Size() * FRONT_END_RATIO) {
-			FRONT_ENDS.add(new FrontEnd());
+			node = new FrontEnd();
 		} else {
-			REPLICAS.add(new Replica());
+			node = new Replica();
 		}
-		LOG.info("Shutting down...");
+		node.start();
+		LOG.info("shutting down...");
 		MPI.Finalize();
 	}
 }
