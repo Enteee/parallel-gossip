@@ -1,21 +1,37 @@
 package ch.duckpond.parallel.gossip;
 
 import mpi.MPI;
-import ch.duckpond.parallel.gossip.messages.HelloWorldMessage;
-import ch.duckpond.parallel.gossip.messages.Message;
 import ch.duckpond.parallel.gossip.utils.TimeVector;
 
 public class Replica extends Node {
 
-	private final TimeVector timeVector = new TimeVector(MPI.COMM_WORLD.Size());
+	/**
+	 * Amount of replicas to deliver with gossip messages in %.
+	 */
+	private static final double REPLICA_GOSSIP_PERCENTAGE = 0.1;
+	/**
+	 * Timeout for polling messages [s]
+	 */
+	private static final long TIMEOUT = 2;
 
 	public Replica() {
-		try {
-			messageOutQueue.put(new HelloWorldMessage(1));
-			Message message[] = { new HelloWorldMessage(0) };
-			logger.info("MESSAGE GOT:" + messageInQueue.take().getDestination());
-		} catch (InterruptedException e) {
-			logger.info("Failed putting message");
+		do {
+			try {
+				handleMessages(TIMEOUT * 1000);
+			} catch (InterruptedException e) {
+				log.info("Failed putting message");
+			}
+			gossip();
+		} while (true);
+	}
+
+	private void gossip() {
+		for (final Replica replica : Main
+				.getRandomReplicas(REPLICA_GOSSIP_PERCENTAGE)) {
+			// TODO: Send only new messages for replica
+			this.sendGossipMessage(replica.getRank(), new TimeVector(
+					MPI.COMM_WORLD.Size()));
 		}
+
 	}
 }
