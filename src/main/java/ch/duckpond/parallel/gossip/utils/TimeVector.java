@@ -18,6 +18,20 @@ public class TimeVector implements Serializable {
 		timeVector = new int[size];
 	}
 
+	@Override
+	public String toString() {
+		StringBuilder sb = new StringBuilder();
+		sb.append("(");
+		for (int i = 0; i < size(); i++) {
+			sb.append(get(i));
+			if (i + 1 < size()) {
+				sb.append(",");
+			}
+		}
+		sb.append(")");
+		return sb.toString();
+	}
+
 	public int size() {
 		return timeVector.length;
 	}

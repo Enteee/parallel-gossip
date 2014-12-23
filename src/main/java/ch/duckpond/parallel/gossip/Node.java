@@ -55,7 +55,7 @@ public abstract class Node {
 				while (!isDisposed()) {
 					Message[] message = new Message[1];
 					message[0] = take();
-					log.info("sending: " + message[0]);
+					log.debug("sending: " + message[0]);
 					MPI.COMM_WORLD.Send(message, 0, 1, MPI.OBJECT,
 							message[0].getDestination(), TAG_ARBITRARY);
 				}
@@ -158,21 +158,21 @@ public abstract class Node {
 		return timeStamp;
 	}
 
-	protected TimeVector nextTimeStamp() {
-		timeStamp.increment(getRank());
-		return timeStamp;
-	}
-
 	protected NodeInformation getRandomReplica() {
 		return replicas.get(Main.RND.nextInt(replicas.size()));
 	}
 
-	protected List<NodeInformation> getRandomReplicas(double amountPercentage) {
+	protected List<NodeInformation> getRandomReplicas(double amountPercentage,
+			boolean containsSelf) {
 		if (amountPercentage < 0 || amountPercentage > 1.0) {
 			throw new IllegalArgumentException("amountPercentage");
 		}
 		final List<NodeInformation> randomReplicas = new ArrayList<>(replicas);
-		final int amount = (int) Math.round(replicas.size() * amountPercentage);
+		if (!containsSelf) {
+			randomReplicas.remove(this);
+		}
+		final int amount = (int) Math.round(randomReplicas.size()
+				* amountPercentage);
 		while (randomReplicas.size() > amount) {
 			randomReplicas.remove(Main.RND.nextInt(randomReplicas.size()));
 		}
@@ -212,10 +212,20 @@ public abstract class Node {
 		}
 	}
 
+	/**
+	 * Post a new message
+	 * 
+	 * @param bulletinMessage
+	 *            the new message to post
+	 */
 	public void postBulletinMessage(final BulletinMessage bulletinMessage) {
+		getTimeStamp().increment(getRank());
+		bulletinMessage.getTimeStamp().max(getTimeStamp());
 		if (bulletinMessage.getTimeStamp().isLessOrEqual(timeStamp)) {
+			log.debug("posted");
 			bulletinMessages.add(bulletinMessage);
 		} else {
+			log.debug("future post");
 			futureBulletinMessages.add(bulletinMessage);
 		}
 	}
@@ -239,20 +249,27 @@ public abstract class Node {
 	 * Handles all messages, waits at least for timeout [ms] if there are no new
 	 * messages.
 	 * 
-	 * @param timeout
+	 * @param timeOut
 	 *            the timeout [ms] to wait for messages
 	 * @throws InterruptedException
 	 */
-	protected void handleMessages(final long timeout)
+	protected void handleMessages(final long timeOut)
 			throws InterruptedException {
+
+		// time of the loop start [ms]
+		long handleStartTime = System.currentTimeMillis();
+		// random timeout [ms]
+		long timeOutLeft = timeOut;
 		do {
-			Message message = messageInQueue.poll(timeout,
+			Message message = messageInQueue.poll(timeOutLeft,
 					TimeUnit.MILLISECONDS);
 			// timeout?
 			if (message != null) {
 				handleMessage(message);
 			}
-		} while (messageInQueue.size() > 0);
+			timeOutLeft = timeOut
+					- (System.currentTimeMillis() - handleStartTime);
+		} while (timeOutLeft > 0);
 	}
 
 	/**

@@ -59,4 +59,11 @@ public class BulletinMessage implements Serializable {
 	public TimeVector getTimeStamp() {
 		return timeStamp;
 	}
+
+	@Override
+	public String toString() {
+		return String.format(
+				"Title: %s Timestamp: %s %nAuthor: %s %nMessage:%s%n",
+				getTitle(), getTimeStamp(), getAuthor(), getMessage());
+	}
 }

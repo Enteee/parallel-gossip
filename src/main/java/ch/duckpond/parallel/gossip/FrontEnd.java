@@ -1,5 +1,7 @@
 package ch.duckpond.parallel.gossip;
 
+import java.util.Set;
+
 import ch.duckpond.parallel.gossip.messages.PostMessage;
 import ch.duckpond.parallel.gossip.messages.QueryMessage;
 import ch.duckpond.parallel.gossip.utils.Utils;
@@ -9,15 +11,15 @@ public class FrontEnd extends Node {
 	/**
 	 * Maximum timeout [s]
 	 */
-	private static final double MAX_TIMEOUT = 10;
+	private static final double MAX_TIMEOUT = 1;
 	/**
 	 * Minimum timeout [s]
 	 */
-	private static final double MIN_TIMEOUT = 2;
+	private static final double MIN_TIMEOUT = 0.5;
 	/**
 	 * Relative chance for a post message being sent
 	 */
-	private static final int CHANCE_POST = 1;
+	private static final int CHANCE_POST = 10;
 	/**
 	 * Relative chance for a query message being sent.
 	 */
@@ -37,39 +39,40 @@ public class FrontEnd extends Node {
 
 	public void start() {
 		do {
-			// time of the loop start [ms]
-			long loopStartTime = System.currentTimeMillis();
-			// random timeout [ms]
-			long timeOut = (long) (MIN_TIMEOUT * 1000 + Main.RND
-					.nextInt((int) ((MAX_TIMEOUT - MIN_TIMEOUT) * 1000)));
-			long timeOutLeft = timeOut;
 			try {
-				while (timeOutLeft > 0) {
-					handleMessages(timeOutLeft);
-					timeOutLeft = timeOut
-							- (System.currentTimeMillis() - loopStartTime);
-				}
+				// random timeout [ms]
+				long timeOut = (long) (MIN_TIMEOUT * 1000 + Main.RND
+						.nextInt((int) ((MAX_TIMEOUT - MIN_TIMEOUT) * 1000)));
+				handleMessages(timeOut);
 			} catch (InterruptedException e) {
 				log.info("sleep interrupted", e);
 			}
 			// perform a random action
 			int rndSelect = Main.RND.nextInt(CHANCE_TOTAL);
-			if (rndSelect < CHANCE_POST) {
+			if ((rndSelect -= CHANCE_POST) < 0) {
 				post();
-			}
-			rndSelect -= CHANCE_POST;
-			if (rndSelect < CHANCE_QUERY) {
+			} else if ((rndSelect -= CHANCE_QUERY) < 0) {
 				query();
+			} else {
+				log.fatal("something went wrong when selecting action");
 			}
-			rndSelect -= CHANCE_QUERY;
 		} while (true);
+	}
+
+	@Override
+	public void addGossipMessages(Set<BulletinMessage> bulletinMessages) {
+		log.info("Messages:");
+		for (final BulletinMessage bulletinMessage : bulletinMessages) {
+			log.info(bulletinMessage);
+		}
+		super.addGossipMessages(bulletinMessages);
 	}
 
 	private void post() {
 		try {
 			messageOutQueue.put(new PostMessage(getRandomReplica().getRank(),
 					new BulletinMessage(AUTHOR_PREFIX + getRank(), Utils
-							.rndString(), Utils.rndString(), nextTimeStamp())));
+							.rndString(), Utils.rndString(), getTimeStamp())));
 		} catch (InterruptedException e) {
 			log.error("message post interrupted", e);
 		}

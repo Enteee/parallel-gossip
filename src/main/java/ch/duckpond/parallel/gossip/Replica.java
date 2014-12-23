@@ -21,6 +21,7 @@ public class Replica extends Node {
 	@Override
 	public void start() {
 		do {
+			log.info("looped");
 			try {
 				handleMessages(TIMEOUT * 1000);
 			} catch (InterruptedException e) {
@@ -31,7 +32,8 @@ public class Replica extends Node {
 	}
 
 	private void gossip() {
-		for (final NodeInformation replica : getRandomReplicas(REPLICA_GOSSIP_PERCENTAGE)) {
+		for (final NodeInformation replica : getRandomReplicas(
+				REPLICA_GOSSIP_PERCENTAGE, false)) {
 			// TODO: Send only new messages for replica
 			this.sendGossipMessage(replica.getRank(), new TimeVector(
 					MPI.COMM_WORLD.Size()));
