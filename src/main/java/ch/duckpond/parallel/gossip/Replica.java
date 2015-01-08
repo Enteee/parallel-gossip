@@ -10,9 +10,9 @@ public class Replica extends Node {
 	 */
 	private static final double REPLICA_GOSSIP_PERCENTAGE = 0.1;
 	/**
-	 * Timeout for polling messages [s]
+	 * Timeout for polling messages [ms]
 	 */
-	private static final long TIMEOUT = 2;
+	private static final long TIMEOUT = 5000;
 
 	public Replica() {
 		log.info("Replica started");
@@ -23,10 +23,11 @@ public class Replica extends Node {
 		do {
 			log.info("looped");
 			try {
-				handleMessages(TIMEOUT * 1000);
+				handleMessages(TIMEOUT);
 			} catch (InterruptedException e) {
 				log.info("Failed putting message");
 			}
+			log.debug("messages count:" + getBulletinMessages().size());
 			gossip();
 		} while (true);
 	}

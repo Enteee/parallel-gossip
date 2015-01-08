@@ -9,7 +9,7 @@ import java.io.Serializable;
  * @param <T>
  *            the type of data held in this vector.
  */
-public class TimeVector implements Serializable {
+public class TimeVector implements Serializable, Comparable<TimeVector> {
 
 	private static final long serialVersionUID = 1L;
 	private final int[] timeVector;
@@ -133,5 +133,28 @@ public class TimeVector implements Serializable {
 	public boolean isLess(final TimeVector other) {
 		checkComparable(other);
 		return isLessOrEqual(other) && !isSame(other);
+	}
+
+	/**
+	 * 
+	 * for all k = 1,...,size(): return -1 iff this[k] < other[k] return 1 iff
+	 * this[k] > other[k] iff return 0 all equal
+	 */
+	@Override
+	public int compareTo(final TimeVector other) {
+		checkComparable(other);
+		int compare = 0;
+		for (int i = 0; i < size(); ++i) {
+			int thisElement = get(i);
+			int otherElement = other.get(i);
+			if (thisElement < otherElement) {
+				compare = -1;
+				break;
+			} else if (thisElement > otherElement) {
+				compare = 1;
+				break;
+			}
+		}
+		return compare;
 	}
 }

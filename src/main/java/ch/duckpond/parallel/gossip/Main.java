@@ -16,7 +16,7 @@ public class Main {
 	public static void main(String args[]) throws Exception {
 		MPI.Init(args);
 		Node node;
-		if (MPI.COMM_WORLD.Rank() <= MPI.COMM_WORLD.Size() * FRONT_END_RATIO) {
+		if (MPI.COMM_WORLD.Rank() < MPI.COMM_WORLD.Size() * FRONT_END_RATIO) {
 			node = new FrontEnd();
 		} else {
 			node = new Replica();

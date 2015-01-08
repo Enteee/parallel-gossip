@@ -4,7 +4,8 @@ import java.io.Serializable;
 
 import ch.duckpond.parallel.gossip.utils.TimeVector;
 
-public class BulletinMessage implements Serializable {
+public class BulletinMessage implements Serializable,
+		Comparable<BulletinMessage> {
 
 	private static final long serialVersionUID = 1L;
 	private static final String REFERS_TO_INDICATOR = "RE:";
@@ -65,5 +66,10 @@ public class BulletinMessage implements Serializable {
 		return String.format(
 				"Title: %s Timestamp: %s %nAuthor: %s %nMessage:%s%n",
 				getTitle(), getTimeStamp(), getAuthor(), getMessage());
+	}
+
+	@Override
+	public int compareTo(BulletinMessage other) {
+		return getTimeStamp().compareTo(other.getTimeStamp());
 	}
 }

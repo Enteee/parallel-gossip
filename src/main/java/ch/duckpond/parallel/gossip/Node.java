@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.TreeSet;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -94,8 +95,8 @@ public abstract class Node {
 	private final Thread messageInQueueThread = new Thread(messageInQueue);
 	private final int rank = MPI.COMM_WORLD.Rank();
 	private final TimeVector timeStamp = new TimeVector(MPI.COMM_WORLD.Size());
-	private final Set<BulletinMessage> bulletinMessages = new HashSet<>();
-	private final Set<BulletinMessage> futureBulletinMessages = new HashSet<>();
+	private final Set<BulletinMessage> bulletinMessages = new TreeSet<>();
+	private final Set<BulletinMessage> futureBulletinMessages = new TreeSet<>();
 	private final HashMap<Integer, TimeVector> otherNodes = new HashMap<>();
 	private List<NodeInformation> replicas = new ArrayList<>();
 	private List<NodeInformation> front_ends = new ArrayList<>();
@@ -179,6 +180,10 @@ public abstract class Node {
 		return randomReplicas;
 	}
 
+	public Set<BulletinMessage> getBulletinMessages() {
+		return bulletinMessages;
+	}
+
 	public void addNodeInformation(final NodeInformation nodeInformation) {
 		if (nodeInformation.getNodeType() == Replica.class) {
 			replicas.add(nodeInformation);
@@ -198,18 +203,18 @@ public abstract class Node {
 	public void addGossipMessages(final Set<BulletinMessage> bulletinMessages) {
 		for (final BulletinMessage bulletinMessage : bulletinMessages) {
 			this.bulletinMessages.add(bulletinMessage);
-			timeStamp.max(bulletinMessage.getTimeStamp());
+			getTimeStamp().max(bulletinMessage.getTimeStamp());
 		}
 		// check if some of the future messages can be added now
-		final HashSet<BulletinMessage> moreBulletinMessage = new HashSet<>();
-		for (final BulletinMessage bulletinMessage : futureBulletinMessages) {
-			if (bulletinMessage.getTimeStamp().isLessOrEqual(timeStamp)) {
-				moreBulletinMessage.add(bulletinMessage);
+		final Set<BulletinMessage> moreBulletinMessages = new TreeSet<>();
+		for (final BulletinMessage futureBulletinMessage : futureBulletinMessages) {
+			if (futureBulletinMessage.getTimeStamp().isLessOrEqual(timeStamp)) {
+				log.debug("future post is now");
+				moreBulletinMessages.add(futureBulletinMessage);
 			}
 		}
-		if (moreBulletinMessage.size() > 0) {
-			addGossipMessages(moreBulletinMessage);
-		}
+		futureBulletinMessages.removeAll(moreBulletinMessages);
+		bulletinMessages.addAll(moreBulletinMessages);
 	}
 
 	/**
@@ -255,7 +260,6 @@ public abstract class Node {
 	 */
 	protected void handleMessages(final long timeOut)
 			throws InterruptedException {
-
 		// time of the loop start [ms]
 		long handleStartTime = System.currentTimeMillis();
 		// random timeout [ms]
