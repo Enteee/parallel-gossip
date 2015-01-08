@@ -163,6 +163,15 @@ public abstract class Node {
 		return replicas.get(Main.RND.nextInt(replicas.size()));
 	}
 
+	/**
+	 * Get some random replicas but at lest one
+	 * 
+	 * @param amountPercentage
+	 *            amount of random replicas in % of total number of replicas
+	 * @param containsSelf
+	 *            if @{code true} the list might contain this
+	 * @return a list of random replicas
+	 */
 	protected List<NodeInformation> getRandomReplicas(double amountPercentage,
 			boolean containsSelf) {
 		if (amountPercentage < 0 || amountPercentage > 1.0) {
@@ -174,7 +183,7 @@ public abstract class Node {
 		}
 		final int amount = (int) Math.round(randomReplicas.size()
 				* amountPercentage);
-		while (randomReplicas.size() > amount) {
+		while (randomReplicas.size() > amount && randomReplicas.size() > 1) {
 			randomReplicas.remove(Main.RND.nextInt(randomReplicas.size()));
 		}
 		return randomReplicas;

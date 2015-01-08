@@ -11,11 +11,11 @@ public class FrontEnd extends Node {
 	/**
 	 * Maximum timeout [s]
 	 */
-	private static final double MAX_TIMEOUT = 1;
+	private static final double MAX_TIMEOUT = 5;
 	/**
 	 * Minimum timeout [s]
 	 */
-	private static final double MIN_TIMEOUT = 0.5;
+	private static final double MIN_TIMEOUT = 3;
 	/**
 	 * Relative chance for a post message being sent
 	 */
@@ -72,7 +72,8 @@ public class FrontEnd extends Node {
 		try {
 			messageOutQueue.put(new PostMessage(getRandomReplica().getRank(),
 					new BulletinMessage(AUTHOR_PREFIX + getRank(), Utils
-							.rndString(), Utils.rndString(), getTimeStamp())));
+							.rndString(), Utils.rndString(), getTimeStamp(),
+							getTimeStamp().toString())));
 		} catch (InterruptedException e) {
 			log.error("message post interrupted", e);
 		}

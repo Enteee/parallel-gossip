@@ -15,7 +15,7 @@
 <stringAttribute key="org.eclipse.jdt.launching.MAIN_TYPE" value="ch.duckpond.parallel.gossip.Main"/>
 <stringAttribute key="org.eclipse.jdt.launching.MPJ_DEV" value="multicore"/>
 <stringAttribute key="org.eclipse.jdt.launching.MPJ_HOME" value="${workspace_loc}/parallel-gossip/lib/mpj-v0_43/"/>
-<intAttribute key="org.eclipse.jdt.launching.MPJ_NP" value="50"/>
+<intAttribute key="org.eclipse.jdt.launching.MPJ_NP" value="4"/>
 <mapAttribute key="org.eclipse.jdt.launching.MPJ_PARAMETERS"/>
 <stringAttribute key="org.eclipse.jdt.launching.PROJECT_ATTR" value="parallel-gossip"/>
 </launchConfiguration>

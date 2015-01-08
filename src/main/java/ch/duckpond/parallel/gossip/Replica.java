@@ -12,7 +12,7 @@ public class Replica extends Node {
 	/**
 	 * Timeout for polling messages [ms]
 	 */
-	private static final long TIMEOUT = 5000;
+	private static final long TIMEOUT = 10000;
 
 	public Replica() {
 		log.info("Replica started");
@@ -21,7 +21,6 @@ public class Replica extends Node {
 	@Override
 	public void start() {
 		do {
-			log.info("looped");
 			try {
 				handleMessages(TIMEOUT);
 			} catch (InterruptedException e) {

@@ -5,4 +5,4 @@ BIN="${GIT_ROOT}/bin/"
 pkill -f gossip
 echo "cleanup logs [ENTER]"
 read
-echo rm -rf "${BIN}/*.log*"
+find ${BIN} -iname '*.log*' -exec rm {} \;

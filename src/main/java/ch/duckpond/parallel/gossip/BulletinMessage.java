@@ -14,35 +14,40 @@ public class BulletinMessage implements Serializable,
 	private String message;
 	private String title;
 	private TimeVector timeStamp;
+	private String createdTimeStamp;
 
 	public BulletinMessage(final String author, final String title,
-			final String message, final TimeVector timeStamp) {
-		init(author, title, message, timeStamp);
+			final String message, final TimeVector timeStamp,
+			final String createdTimeStamp) {
+		init(author, title, message, timeStamp, createdTimeStamp);
 	}
 
 	public BulletinMessage(final String author, final BulletinMessage refersTo,
-			final String message, final TimeVector timeStamp) {
+			final String message, final TimeVector timeStamp,
+			final String createdTimeStamp) {
 		init(author, REFERS_TO_INDICATOR + refersTo.getTitle(), message,
-				timeStamp);
+				timeStamp, createdTimeStamp);
 	}
 
 	private void init(final String author, final String title,
-			final String message, final TimeVector timeStamp) {
+			final String message, final TimeVector timeStamp,
+			final String createdTimeStamp) {
 		if (author == null || title == null || message == null
-				|| timeStamp == null) {
+				|| timeStamp == null || createdTimeStamp == null) {
 			throw new IllegalArgumentException(
-					"author || title || message || timestamp");
+					"author || title || message || timestamp || createdTimeStamp");
 		}
 		this.author = author;
 		this.message = message;
 		this.title = title;
 		this.timeStamp = timeStamp;
+		this.createdTimeStamp = createdTimeStamp;
 	}
 
 	public BulletinMessage getBulletinMessageWithNewTimestamp(
 			final TimeVector timeStamp) {
 		return new BulletinMessage(getAuthor(), getTitle(), getMessage(),
-				timeStamp);
+				timeStamp, getCreatedTimeStamp());
 	}
 
 	public String getAuthor() {
@@ -61,11 +66,16 @@ public class BulletinMessage implements Serializable,
 		return timeStamp;
 	}
 
+	public String getCreatedTimeStamp() {
+		return createdTimeStamp;
+	}
+
 	@Override
 	public String toString() {
-		return String.format(
-				"Title: %s Timestamp: %s %nAuthor: %s %nMessage:%s%n",
-				getTitle(), getTimeStamp(), getAuthor(), getMessage());
+		return String
+				.format("Title: %s%nTimestamp: %s%nCreatedTimestamp: %s%nAuthor: %s%nMessage:%s%n",
+						getTitle(), getTimeStamp(), getCreatedTimeStamp(),
+						getAuthor(), getMessage());
 	}
 
 	@Override
