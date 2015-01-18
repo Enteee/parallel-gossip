@@ -2,13 +2,9 @@ package ch.duckpond.parallel.gossip;
 
 import java.io.Serializable;
 
-import mpi.MPI;
-import ch.duckpond.parallel.gossip.utils.TimeVector;
-
 public class NodeInformation implements Serializable {
 	private static final long serialVersionUID = 1L;
 
-	private final TimeVector timeStamp = new TimeVector(MPI.COMM_WORLD.Size());
 	private final Class<? extends Node> nodeType;
 	private final int rank;
 

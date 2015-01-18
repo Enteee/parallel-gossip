@@ -115,7 +115,7 @@ public abstract class Node {
 	private final Set<BulletinMessage> futureBulletinMessages = new TreeSet<>();
 	private final HashMap<Integer, TimeVector> otherNodes = new HashMap<>();
 	private final List<NodeInformation> replicas = new ArrayList<>();
-	private final List<NodeInformation> front_ends = new ArrayList<>();
+	private final List<NodeInformation> frontEnds = new ArrayList<>();
 	private final AtomicBoolean disposed = new AtomicBoolean(false);
 
 	protected Node() {
@@ -152,7 +152,7 @@ public abstract class Node {
 			} catch (final InterruptedException e) {
 				log.error("interrupted while reading announcement messages");
 			}
-		} while (replicas.size() <= 0 && front_ends.size() <= 0);
+		} while (replicas.size() <= 0 && frontEnds.size() <= 0);
 
 	}
 
@@ -255,7 +255,7 @@ public abstract class Node {
 		if (nodeInformation.getNodeType() == Replica.class) {
 			replicas.add(nodeInformation);
 		} else if (nodeInformation.getNodeType() == FrontEnd.class) {
-			front_ends.add(nodeInformation);
+			frontEnds.add(nodeInformation);
 		} else {
 			log.fatal("invalid node class");
 		}
