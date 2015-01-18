@@ -37,14 +37,15 @@ public class FrontEnd extends Node {
 		log.info("FrontEnd started");
 	}
 
+	@Override
 	public void run() {
 		while (!isDisposed()) {
 			try {
 				// random timeout [ms]
-				long timeOut = (long) (MIN_TIMEOUT * 1000 + Main.RND
+				final long timeOut = (long) (MIN_TIMEOUT * 1000 + Main.RND
 						.nextInt((int) ((MAX_TIMEOUT - MIN_TIMEOUT) * 1000)));
 				handleMessages(timeOut);
-			} catch (InterruptedException e) {
+			} catch (final InterruptedException e) {
 				log.info("sleep interrupted", e);
 			}
 			// perform a random action
@@ -60,7 +61,7 @@ public class FrontEnd extends Node {
 	}
 
 	@Override
-	public void addGossipMessages(Set<BulletinMessage> bulletinMessages) {
+	public void addGossipMessages(final Set<BulletinMessage> bulletinMessages) {
 		log.info("Messages:");
 		for (final BulletinMessage bulletinMessage : bulletinMessages) {
 			log.info(bulletinMessage);
@@ -74,7 +75,7 @@ public class FrontEnd extends Node {
 					new BulletinMessage(AUTHOR_PREFIX + getRank(), Utils
 							.rndString(), Utils.rndString(), getTimeStamp(),
 							getTimeStamp().toString())));
-		} catch (InterruptedException e) {
+		} catch (final InterruptedException e) {
 			log.error("message post interrupted", e);
 		}
 	}
@@ -83,7 +84,7 @@ public class FrontEnd extends Node {
 		try {
 			messageOutQueue.put(new QueryMessage(getRandomReplica().getRank(),
 					getRank(), getTimeStamp()));
-		} catch (InterruptedException e) {
+		} catch (final InterruptedException e) {
 			log.error("message query interrupted", e);
 		}
 	}

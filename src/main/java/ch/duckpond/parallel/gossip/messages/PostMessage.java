@@ -6,15 +6,16 @@ import ch.duckpond.parallel.gossip.Node;
 public class PostMessage extends Message {
 	private static final long serialVersionUID = 1L;
 
-	private BulletinMessage bulletinMessage;
+	private final BulletinMessage bulletinMessage;
 
-	public PostMessage(int destination, final BulletinMessage bulletinMessage) {
+	public PostMessage(final int destination,
+			final BulletinMessage bulletinMessage) {
 		super(destination);
 		this.bulletinMessage = bulletinMessage;
 	}
 
 	@Override
-	public void handle(Node node) {
+	public void handle(final Node node) {
 		node.postBulletinMessage(bulletinMessage);
 	}
 

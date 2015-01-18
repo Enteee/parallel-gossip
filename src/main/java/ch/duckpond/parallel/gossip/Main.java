@@ -13,7 +13,7 @@ public class Main {
 	public final static Random RND = new Random();
 	private final static Logger LOG = Logger.getLogger(Main.class);
 
-	public static void main(String args[]) throws Exception {
+	public static void main(final String args[]) throws Exception {
 		MPI.Init(args);
 		final Node node;
 		// at least one frontend and one replica
@@ -21,8 +21,9 @@ public class Main {
 			throw new RuntimeException("network must have at least 2 nodes");
 		}
 		if (MPI.COMM_WORLD.Rank() == 0
-				|| (MPI.COMM_WORLD.Rank() != MPI.COMM_WORLD.Size() - 1 && MPI.COMM_WORLD
-						.Rank() < MPI.COMM_WORLD.Size() * FRONT_END_RATIO)) {
+				|| MPI.COMM_WORLD.Rank() != MPI.COMM_WORLD.Size() - 1
+				&& MPI.COMM_WORLD.Rank() < MPI.COMM_WORLD.Size()
+						* FRONT_END_RATIO) {
 			node = new FrontEnd();
 		} else {
 			node = new Replica();

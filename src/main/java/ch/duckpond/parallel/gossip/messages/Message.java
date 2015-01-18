@@ -19,7 +19,7 @@ public abstract class Message implements Serializable {
 
 	/**
 	 * Handle the message
-	 * 
+	 *
 	 * @param node
 	 *            target node
 	 */

@@ -45,7 +45,7 @@ public class TimeVectorTest {
 
 	@Test
 	public final void testMax() {
-		TimeVector tvResultMax = new TimeVector(4);
+		final TimeVector tvResultMax = new TimeVector(4);
 		tvResultMax.increment(0);
 		tvResultMax.increment(2);
 		tvResultMax.increment(2);

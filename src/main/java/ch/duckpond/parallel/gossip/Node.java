@@ -31,7 +31,7 @@ public abstract class Node {
 	private static final String LOG_DIR = "bin/";
 
 	private abstract class MessageQueue extends LinkedBlockingQueue<Message>
-			implements Runnable {
+	implements Runnable {
 
 		private static final long serialVersionUID = 1L;
 		private final AtomicBoolean disposed = new AtomicBoolean(false);
@@ -58,13 +58,13 @@ public abstract class Node {
 		public void run() {
 			try {
 				while (!isDisposed()) {
-					Message[] message = new Message[1];
+					final Message[] message = new Message[1];
 					message[0] = take();
 					log.debug("sending: " + message[0]);
 					MPI.COMM_WORLD.Isend(message, 0, 1, MPI.OBJECT,
 							message[0].getDestination(), TAG_ARBITRARY);
 				}
-			} catch (InterruptedException e) {
+			} catch (final InterruptedException e) {
 				log.info("Out queue interrupted", e);
 			}
 		}
@@ -86,7 +86,7 @@ public abstract class Node {
 					log.debug("received: " + message[0]);
 					put(message[0]);
 				}
-			} catch (InterruptedException e) {
+			} catch (final InterruptedException e) {
 				log.info("In queue interrupted", e);
 			}
 		}
@@ -100,7 +100,7 @@ public abstract class Node {
 		}
 	}
 
-	private CyclicBarrier disposalBarrier = new CyclicBarrier(2);
+	private final CyclicBarrier disposalBarrier = new CyclicBarrier(2);
 	protected final MessageOutQueue messageOutQueue = new MessageOutQueue();
 	protected final MessageInQueue messageInQueue = new MessageInQueue();
 	protected final Logger log;
@@ -114,9 +114,9 @@ public abstract class Node {
 	private final List<BulletinMessage> bulletinMessagesOrdered = new LinkedList<>();
 	private final Set<BulletinMessage> futureBulletinMessages = new TreeSet<>();
 	private final HashMap<Integer, TimeVector> otherNodes = new HashMap<>();
-	private List<NodeInformation> replicas = new ArrayList<>();
-	private List<NodeInformation> front_ends = new ArrayList<>();
-	private AtomicBoolean disposed = new AtomicBoolean(false);
+	private final List<NodeInformation> replicas = new ArrayList<>();
+	private final List<NodeInformation> front_ends = new ArrayList<>();
+	private final AtomicBoolean disposed = new AtomicBoolean(false);
 
 	protected Node() {
 		// Log file per node
@@ -140,8 +140,8 @@ public abstract class Node {
 		for (int i = 0; i < MPI.COMM_WORLD.Size(); i++) {
 			try {
 				messageOutQueue
-						.put(new NodeAnnounceMessage(i, nodeInformation));
-			} catch (InterruptedException e) {
+				.put(new NodeAnnounceMessage(i, nodeInformation));
+			} catch (final InterruptedException e) {
 				log.error("interrupted while sending node announcement", e);
 			}
 			otherNodes.put(i, new TimeVector(MPI.COMM_WORLD.Size()));
@@ -149,7 +149,7 @@ public abstract class Node {
 		do {
 			try {
 				handleMessage(messageInQueue.take());
-			} catch (InterruptedException e) {
+			} catch (final InterruptedException e) {
 				log.error("interrupted while reading announcement messages");
 			}
 		} while (replicas.size() <= 0 && front_ends.size() <= 0);
@@ -210,15 +210,15 @@ public abstract class Node {
 
 	/**
 	 * Get some random replicas but at lest one
-	 * 
+	 *
 	 * @param amountPercentage
 	 *            amount of random replicas in % of total number of replicas
 	 * @param containsSelf
 	 *            if @{code true} the list might contain this
 	 * @return a list of random replicas
 	 */
-	protected List<NodeInformation> getRandomReplicas(double amountPercentage,
-			boolean containsSelf) {
+	protected List<NodeInformation> getRandomReplicas(
+			final double amountPercentage, final boolean containsSelf) {
 		if (amountPercentage < 0 || amountPercentage > 1.0) {
 			throw new IllegalArgumentException("amountPercentage");
 		}
@@ -263,7 +263,7 @@ public abstract class Node {
 
 	/**
 	 * Add messages and max this time stamp
-	 * 
+	 *
 	 * @param bulletinMessages
 	 *            the @{link BulletinMessage}s to add.
 	 */
@@ -285,7 +285,7 @@ public abstract class Node {
 
 	/**
 	 * Post a new message
-	 * 
+	 *
 	 * @param bulletinMessage
 	 *            the new message to post
 	 */
@@ -311,7 +311,7 @@ public abstract class Node {
 		}
 		try {
 			messageOutQueue.put(new Gossip(destination, gossipMessage));
-		} catch (InterruptedException e) {
+		} catch (final InterruptedException e) {
 			log.error("gossip sending interrupted", e);
 		}
 	}
@@ -319,7 +319,7 @@ public abstract class Node {
 	/**
 	 * Handles all messages, waits at least for timeout [ms] if there are no new
 	 * messages.
-	 * 
+	 *
 	 * @param timeOut
 	 *            the timeout [ms] to wait for messages
 	 * @throws InterruptedException
@@ -327,11 +327,11 @@ public abstract class Node {
 	protected void handleMessages(final long timeOut)
 			throws InterruptedException {
 		// time of the loop start [ms]
-		long handleStartTime = System.currentTimeMillis();
+		final long handleStartTime = System.currentTimeMillis();
 		// random timeout [ms]
 		long timeOutLeft = timeOut;
 		do {
-			Message message = messageInQueue.poll(timeOutLeft,
+			final Message message = messageInQueue.poll(timeOutLeft,
 					TimeUnit.MILLISECONDS);
 			// timeout?
 			if (message != null) {
@@ -344,7 +344,7 @@ public abstract class Node {
 
 	/**
 	 * Handle the specific message
-	 * 
+	 *
 	 * @param message
 	 *            the message to handle
 	 */

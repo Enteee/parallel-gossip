@@ -4,7 +4,7 @@ import java.io.Serializable;
 
 /**
  * A vector of timestamps.
- * 
+ *
  * @author ente
  * @param <T>
  *            the type of data held in this vector.
@@ -20,7 +20,7 @@ public class TimeVector implements Serializable, Comparable<TimeVector> {
 
 	@Override
 	public String toString() {
-		StringBuilder sb = new StringBuilder();
+		final StringBuilder sb = new StringBuilder();
 		sb.append("(");
 		for (int i = 0; i < size(); i++) {
 			sb.append(get(i));
@@ -36,7 +36,7 @@ public class TimeVector implements Serializable, Comparable<TimeVector> {
 		return timeVector.length;
 	}
 
-	public int get(int i) {
+	public int get(final int i) {
 		return timeVector[i];
 	}
 
@@ -44,7 +44,7 @@ public class TimeVector implements Serializable, Comparable<TimeVector> {
 		return timeVector;
 	}
 
-	public void increment(int i) {
+	public void increment(final int i) {
 		if (i > size()) {
 			throw new IndexOutOfBoundsException("i");
 		}
@@ -53,7 +53,7 @@ public class TimeVector implements Serializable, Comparable<TimeVector> {
 
 	/**
 	 * Are two @{link TimeVector}s comparable to each other?
-	 * 
+	 *
 	 * @param other
 	 */
 	private void checkComparable(final TimeVector other) {
@@ -68,23 +68,23 @@ public class TimeVector implements Serializable, Comparable<TimeVector> {
 	/**
 	 * Goes through all the element of this and other and sets always the
 	 * maximum of this.
-	 * 
+	 *
 	 * @param other
 	 *            the other vector used for maxing this vector.
 	 */
 	public void max(final TimeVector other) {
 		checkComparable(other);
 		for (int i = 0; i < size(); ++i) {
-			int thisElement = get(i);
-			int otherElement = other.get(i);
-			timeVector[i] = (thisElement < otherElement) ? otherElement
+			final int thisElement = get(i);
+			final int otherElement = other.get(i);
+			timeVector[i] = thisElement < otherElement ? otherElement
 					: thisElement;
 		}
 	}
 
 	/**
 	 * this == other iff this[k] == other[k] for all k = 1,...,size()
-	 * 
+	 *
 	 * @param other
 	 * @return
 	 */
@@ -92,8 +92,8 @@ public class TimeVector implements Serializable, Comparable<TimeVector> {
 		checkComparable(other);
 		boolean isSame = true;
 		for (int i = 0; i < size(); ++i) {
-			int thisElement = get(i);
-			int otherElement = other.get(i);
+			final int thisElement = get(i);
+			final int otherElement = other.get(i);
 			if (otherElement != thisElement) {
 				isSame = false;
 				break;
@@ -104,7 +104,7 @@ public class TimeVector implements Serializable, Comparable<TimeVector> {
 
 	/**
 	 * this <= other iff this[k] <= other[k] for all k = 1,...,size()
-	 * 
+	 *
 	 * @param other
 	 *            check against
 	 * @return
@@ -113,8 +113,8 @@ public class TimeVector implements Serializable, Comparable<TimeVector> {
 		checkComparable(other);
 		boolean isLessOrEqual = true;
 		for (int i = 0; i < size(); ++i) {
-			int thisElement = get(i);
-			int otherElement = other.get(i);
+			final int thisElement = get(i);
+			final int otherElement = other.get(i);
 			if (otherElement < thisElement) {
 				isLessOrEqual = false;
 				break;
@@ -125,7 +125,7 @@ public class TimeVector implements Serializable, Comparable<TimeVector> {
 
 	/**
 	 * this < other iff this.isLessOrEqual(other) && !this.isSame(other)
-	 * 
+	 *
 	 * @param other
 	 *            check against
 	 * @return
@@ -136,7 +136,7 @@ public class TimeVector implements Serializable, Comparable<TimeVector> {
 	}
 
 	/**
-	 * 
+	 *
 	 * for all k = 1,...,size(): return -1 iff this[k] < other[k] return 1 iff
 	 * this[k] > other[k] iff return 0 all equal
 	 */
@@ -145,8 +145,8 @@ public class TimeVector implements Serializable, Comparable<TimeVector> {
 		checkComparable(other);
 		int compare = 0;
 		for (int i = 0; i < size(); ++i) {
-			int thisElement = get(i);
-			int otherElement = other.get(i);
+			final int thisElement = get(i);
+			final int otherElement = other.get(i);
 			if (thisElement < otherElement) {
 				compare = -1;
 				break;

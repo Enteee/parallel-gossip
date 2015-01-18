@@ -12,7 +12,8 @@ public class Gossip extends Message {
 
 	private final Set<BulletinMessage> bulletinMessages = new TreeSet<>();
 
-	public Gossip(int destination, final Set<BulletinMessage> bulletinMessages) {
+	public Gossip(final int destination,
+			final Set<BulletinMessage> bulletinMessages) {
 		super(destination);
 		if (bulletinMessages == null) {
 			throw new IllegalArgumentException("bulletinMessages || timeStamp");

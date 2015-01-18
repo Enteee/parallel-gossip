@@ -23,7 +23,7 @@ public class Replica extends Node {
 		while (!isDisposed()) {
 			try {
 				handleMessages(TIMEOUT);
-			} catch (InterruptedException e) {
+			} catch (final InterruptedException e) {
 				log.info("Failed putting message");
 			}
 			log.debug("messages count:" + getBulletinMessages().size());
@@ -35,8 +35,8 @@ public class Replica extends Node {
 		for (final NodeInformation replica : getRandomReplicas(
 				REPLICA_GOSSIP_PERCENTAGE, false)) {
 			// TODO: Send only new messages for replica
-			this.sendGossipMessage(replica.getRank(), new TimeVector(
-					MPI.COMM_WORLD.Size()));
+			sendGossipMessage(replica.getRank(),
+					new TimeVector(MPI.COMM_WORLD.Size()));
 		}
 	}
 

@@ -8,9 +8,9 @@ import ch.duckpond.parallel.gossip.utils.TimeVector;
 public class NodeInformation implements Serializable {
 	private static final long serialVersionUID = 1L;
 
-	private TimeVector timeStamp = new TimeVector(MPI.COMM_WORLD.Size());
-	private Class<? extends Node> nodeType;
-	private int rank;
+	private final TimeVector timeStamp = new TimeVector(MPI.COMM_WORLD.Size());
+	private final Class<? extends Node> nodeType;
+	private final int rank;
 
 	public NodeInformation(final Class<? extends Node> nodeType, final int rank) {
 		if (nodeType == null) {

@@ -5,7 +5,7 @@ import java.io.Serializable;
 import ch.duckpond.parallel.gossip.utils.TimeVector;
 
 public class BulletinMessage implements Serializable,
-		Comparable<BulletinMessage> {
+Comparable<BulletinMessage> {
 
 	private static final long serialVersionUID = 1L;
 	private static final String REFERS_TO_INDICATOR = "RE:";
@@ -79,7 +79,7 @@ public class BulletinMessage implements Serializable,
 	}
 
 	@Override
-	public int compareTo(BulletinMessage other) {
+	public int compareTo(final BulletinMessage other) {
 		return getTimeStamp().compareTo(other.getTimeStamp());
 	}
 }

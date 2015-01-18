@@ -6,7 +6,7 @@ public class HelloWorldMessage extends Message {
 
 	private static final long serialVersionUID = 1L;
 
-	public HelloWorldMessage(int destination) {
+	public HelloWorldMessage(final int destination) {
 		super(destination);
 	}
 

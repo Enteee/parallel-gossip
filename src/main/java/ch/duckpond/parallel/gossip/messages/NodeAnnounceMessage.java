@@ -16,7 +16,7 @@ public class NodeAnnounceMessage extends Message {
 	}
 
 	@Override
-	public void handle(Node node) {
+	public void handle(final Node node) {
 		node.addNodeInformation(nodeInformation);
 	}
 
