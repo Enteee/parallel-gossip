@@ -19,8 +19,8 @@ public class Replica extends Node {
 	}
 
 	@Override
-	public void start() {
-		do {
+	public void run() {
+		while (!isDisposed()) {
 			try {
 				handleMessages(TIMEOUT);
 			} catch (InterruptedException e) {
@@ -28,7 +28,7 @@ public class Replica extends Node {
 			}
 			log.debug("messages count:" + getBulletinMessages().size());
 			gossip();
-		} while (true);
+		}
 	}
 
 	private void gossip() {

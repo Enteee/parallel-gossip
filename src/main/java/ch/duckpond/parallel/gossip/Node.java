@@ -3,14 +3,18 @@ package ch.duckpond.parallel.gossip;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.concurrent.BrokenBarrierException;
+import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import mpi.MPI;
+import mpi.Request;
 
 import org.apache.log4j.FileAppender;
 import org.apache.log4j.Level;
@@ -57,7 +61,7 @@ public abstract class Node {
 					Message[] message = new Message[1];
 					message[0] = take();
 					log.debug("sending: " + message[0]);
-					MPI.COMM_WORLD.Send(message, 0, 1, MPI.OBJECT,
+					MPI.COMM_WORLD.Isend(message, 0, 1, MPI.OBJECT,
 							message[0].getDestination(), TAG_ARBITRARY);
 				}
 			} catch (InterruptedException e) {
@@ -70,13 +74,15 @@ public abstract class Node {
 
 		private static final long serialVersionUID = 1L;
 		private final Message[] message = new Message[1];
+		private Request req;
 
 		@Override
 		public void run() {
 			try {
 				while (!isDisposed()) {
-					MPI.COMM_WORLD.Recv(message, 0, 1, MPI.OBJECT,
+					req = MPI.COMM_WORLD.Irecv(message, 0, 1, MPI.OBJECT,
 							MPI.ANY_SOURCE, MPI.ANY_TAG);
+					req.Wait();
 					log.debug("received: " + message[0]);
 					put(message[0]);
 				}
@@ -84,8 +90,17 @@ public abstract class Node {
 				log.info("In queue interrupted", e);
 			}
 		}
+
+		@Override
+		public void dispose() {
+			if (req != null && !req.Is_null()) {
+				req.Cancel();
+			}
+			super.dispose();
+		}
 	}
 
+	private CyclicBarrier disposalBarrier = new CyclicBarrier(2);
 	protected final MessageOutQueue messageOutQueue = new MessageOutQueue();
 	protected final MessageInQueue messageInQueue = new MessageInQueue();
 	protected final Logger log;
@@ -96,10 +111,12 @@ public abstract class Node {
 	private final int rank = MPI.COMM_WORLD.Rank();
 	private final TimeVector timeStamp = new TimeVector(MPI.COMM_WORLD.Size());
 	private final Set<BulletinMessage> bulletinMessages = new TreeSet<>();
+	private final List<BulletinMessage> bulletinMessagesOrdered = new LinkedList<>();
 	private final Set<BulletinMessage> futureBulletinMessages = new TreeSet<>();
 	private final HashMap<Integer, TimeVector> otherNodes = new HashMap<>();
 	private List<NodeInformation> replicas = new ArrayList<>();
 	private List<NodeInformation> front_ends = new ArrayList<>();
+	private AtomicBoolean disposed = new AtomicBoolean(false);
 
 	protected Node() {
 		// Log file per node
@@ -139,12 +156,40 @@ public abstract class Node {
 
 	}
 
-	abstract public void start();
+	final public void start() {
+		run();
+		awaitDisposal();
+	}
 
-	@Override
-	protected void finalize() throws Throwable {
+	abstract public void run();
+
+	/**
+	 * Stops this node an blocks until stopped.
+	 */
+	public void dispose() {
+		log.debug("dispose..");
 		messageInQueue.dispose();
 		messageOutQueue.dispose();
+		disposed.set(true);
+		awaitDisposal();
+		printBulletinMessagesOrdered();
+	}
+
+	private final void awaitDisposal() {
+		try {
+			log.debug(String.format("disposalBarrier (%d / %d)",
+					disposalBarrier.getNumberWaiting(),
+					disposalBarrier.getParties()));
+			disposalBarrier.await();
+			log.debug("...disposalBarrier");
+		} catch (InterruptedException | BrokenBarrierException e) {
+			log.error("Failed awaiting shutdown", e);
+		}
+
+	}
+
+	protected boolean isDisposed() {
+		return disposed.get();
 	}
 
 	public int getRank() {
@@ -193,6 +238,19 @@ public abstract class Node {
 		return bulletinMessages;
 	}
 
+	private void printBulletinMessagesOrdered() {
+		for (final BulletinMessage bulletinMessage : bulletinMessagesOrdered) {
+			log.info(bulletinMessage);
+		}
+	}
+
+	public void addBulletinMessage(final BulletinMessage bulletinMessage) {
+		if (bulletinMessages.add(bulletinMessage)) {
+			bulletinMessagesOrdered.add(bulletinMessage);
+		}
+		getTimeStamp().max(bulletinMessage.getTimeStamp());
+	}
+
 	public void addNodeInformation(final NodeInformation nodeInformation) {
 		if (nodeInformation.getNodeType() == Replica.class) {
 			replicas.add(nodeInformation);
@@ -211,8 +269,7 @@ public abstract class Node {
 	 */
 	public void addGossipMessages(final Set<BulletinMessage> bulletinMessages) {
 		for (final BulletinMessage bulletinMessage : bulletinMessages) {
-			this.bulletinMessages.add(bulletinMessage);
-			getTimeStamp().max(bulletinMessage.getTimeStamp());
+			addBulletinMessage(bulletinMessage);
 		}
 		// check if some of the future messages can be added now
 		final Set<BulletinMessage> moreBulletinMessages = new TreeSet<>();
@@ -237,7 +294,7 @@ public abstract class Node {
 		bulletinMessage.getTimeStamp().max(getTimeStamp());
 		if (bulletinMessage.getTimeStamp().isLessOrEqual(timeStamp)) {
 			log.debug("posted");
-			bulletinMessages.add(bulletinMessage);
+			addBulletinMessage(bulletinMessage);
 		} else {
 			log.debug("future post");
 			futureBulletinMessages.add(bulletinMessage);
@@ -247,7 +304,7 @@ public abstract class Node {
 	public void sendGossipMessage(final int destination,
 			final TimeVector timeStampAfter) {
 		final HashSet<BulletinMessage> gossipMessage = new HashSet<>();
-		for (final BulletinMessage bulletinMessage : this.bulletinMessages) {
+		for (final BulletinMessage bulletinMessage : getBulletinMessages()) {
 			if (timeStampAfter.isLessOrEqual(bulletinMessage.getTimeStamp())) {
 				gossipMessage.add(bulletinMessage);
 			}
@@ -282,7 +339,7 @@ public abstract class Node {
 			}
 			timeOutLeft = timeOut
 					- (System.currentTimeMillis() - handleStartTime);
-		} while (timeOutLeft > 0);
+		} while (timeOutLeft > 0 && !isDisposed());
 	}
 
 	/**

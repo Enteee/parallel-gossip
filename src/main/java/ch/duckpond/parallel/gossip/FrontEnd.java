@@ -11,19 +11,19 @@ public class FrontEnd extends Node {
 	/**
 	 * Maximum timeout [s]
 	 */
-	private static final double MAX_TIMEOUT = 5;
+	private static final double MAX_TIMEOUT = 2;
 	/**
 	 * Minimum timeout [s]
 	 */
-	private static final double MIN_TIMEOUT = 3;
+	private static final double MIN_TIMEOUT = 0;
 	/**
 	 * Relative chance for a post message being sent
 	 */
-	private static final int CHANCE_POST = 10;
+	private static final int CHANCE_POST = 5;
 	/**
 	 * Relative chance for a query message being sent.
 	 */
-	private static final int CHANCE_QUERY = 1;
+	private static final int CHANCE_QUERY = 4;
 	/**
 	 * Total of all chances
 	 */
@@ -37,8 +37,8 @@ public class FrontEnd extends Node {
 		log.info("FrontEnd started");
 	}
 
-	public void start() {
-		do {
+	public void run() {
+		while (!isDisposed()) {
 			try {
 				// random timeout [ms]
 				long timeOut = (long) (MIN_TIMEOUT * 1000 + Main.RND
@@ -56,7 +56,7 @@ public class FrontEnd extends Node {
 			} else {
 				log.fatal("something went wrong when selecting action");
 			}
-		} while (true);
+		}
 	}
 
 	@Override

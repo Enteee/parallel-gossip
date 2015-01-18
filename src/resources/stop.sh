@@ -6,3 +6,4 @@ pkill -f gossip
 echo "cleanup logs [ENTER]"
 read
 find ${BIN} -iname '*.log*' -exec rm {} \;
+pkill -9 -f gossip
